@@ -1,7 +1,15 @@
 {
   "rewrites": [
     {
-      "source": "/((?!.*\\.).*)",
+      "source": "/admin/:path*",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/((?!api/|_next/|static/|public/|favicon.ico|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]

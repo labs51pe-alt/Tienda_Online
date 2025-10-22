@@ -7,9 +7,14 @@ import { getStoresData, saveStoresData } from './data.ts';
 const storesData = getStoresData();
 
 const getStoreConfig = () => {
-    const params = new URLSearchParams(window.location.search);
-    const storeId = params.get('store') || 'sachacacao';
-    return storesData[storeId] || storesData.sachacacao;
+    const path = window.location.pathname;
+    // Extrae el ID de la tienda de la ruta. Ej: "/sachacacao" -> "sachacacao"
+    const storeIdFromPath = path.split('/')[1];
+    
+    // Si hay un ID en la ruta y existe en los datos, úsalo. Si no, usa el predeterminado.
+    const storeId = storeIdFromPath && storesData[storeIdFromPath] ? storeIdFromPath : 'sachacacao';
+    
+    return storesData[storeId];
 };
 
 // --- INTERFACES DE TIPOS ---
@@ -214,7 +219,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ isChatOpen, toggleChat }) => {
     return (
         <>
             <button className="chat-fab" onClick={toggleChat} aria-label="Abrir chat">
-                <svg xmlns="http://www.w.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.65-3.8a9 9 0 1 1 3.4 2.9l-5.05.9"></path><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1zm-2 2a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1zm4 0a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1zm2-2a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1zm-4 0a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1z"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.65-3.8a9 9 0 1 1 3.4 2.9l-5.05.9"></path><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1zm-2 2a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1zm4 0a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1zm2-2a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1zm-4 0a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1z"></path></svg>
             </button>
             {isChatOpen && (
                 <div className="chat-window">
@@ -677,11 +682,18 @@ const AdminPanel: React.FC = () => {
 // ========================================================================
 
 const Main = () => {
+    // Si la ruta comienza con /admin, renderiza el panel de admin.
+    // NOTA: Esto requiere una configuración de reescritura en Vercel.
     if (window.location.pathname.startsWith('/admin')) {
         return <AdminPanel />;
     }
+    // Para cualquier otra ruta, renderiza la tienda.
     return <App />;
 };
+
+// Limpia los archivos que ya no se usan.
+// No se necesita `admin.tsx` o `admin.css` separados.
+// No se necesita `admin.html`.
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(<Main />);
