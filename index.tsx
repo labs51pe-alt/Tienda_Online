@@ -313,10 +313,8 @@ const App = () => {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    // Dynamic theme application
     useEffect(() => {
         Object.entries(storeConfig.theme).forEach(([key, value]) => {
-            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
             document.documentElement.style.setProperty(key, value as string);
         });
         document.title = `${storeConfig.name} | Tienda Online`;
@@ -378,17 +376,97 @@ const App = () => {
     );
 };
 
+// --- COMPONENTES DEL PANEL DE ADMINISTRACIÓN ---
+
+interface ProductEditModalProps {
+    product: Partial<Product> | null;
+    onSave: (product: Partial<Product>) => void;
+    onDelete: (productId: number) => void;
+    onClose: () => void;
+}
+
+const ProductEditModal: React.FC<ProductEditModalProps> = ({ product: initialProduct, onSave, onDelete, onClose }) => {
+    const [product, setProduct] = useState(initialProduct);
+    const isNew = !product?.id;
+
+    useEffect(() => { setProduct(initialProduct); }, [initialProduct]);
+    
+    if (!product) return null;
+
+    const handleChange = (field: keyof Product, value: string | number) => {
+        setProduct(p => p ? { ...p, [field]: value } : null);
+    };
+
+    const handleSave = () => {
+        onSave(product);
+    };
+
+    const handleDelete = () => {
+        if (product.id && window.confirm(`¿Estás seguro de que quieres eliminar "${product.name}"?`)) {
+            onDelete(product.id);
+        }
+    };
+
+    return (
+        <div className="product-edit-modal-overlay" onClick={onClose}>
+            <div className="product-edit-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="product-edit-modal-header">
+                    <h3>{isNew ? 'Añadir Nuevo Producto' : 'Editar Producto'}</h3>
+                    <button onClick={onClose} className="close-modal-btn">&times;</button>
+                </div>
+                <div className="product-edit-modal-body">
+                    <div className="form-group">
+                        <label>Nombre del Producto</label>
+                        <input type="text" value={product.name} onChange={(e) => handleChange('name', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                        <label>Descripción</label>
+                        <textarea value={product.description} onChange={(e) => handleChange('description', e.target.value)} rows={4}></textarea>
+                    </div>
+                     <div className="form-grid">
+                        <div className="form-group">
+                            <label>Precio (S/)</label>
+                            <input type="number" value={product.price} onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)} />
+                        </div>
+                    </div>
+                     <div className="form-group">
+                        <label>URL de la Imagen</label>
+                        <input type="text" value={product.image} onChange={(e) => handleChange('image', e.target.value)} />
+                    </div>
+                    {product.image && (
+                      <div className="image-preview-container">
+                          <img src={product.image} alt="Vista previa" className="image-preview"/>
+                      </div>
+                    )}
+                </div>
+                <div className="product-edit-modal-footer">
+                    {!isNew && (
+                        <button className="delete-product-btn-modal" onClick={handleDelete}>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            Eliminar
+                        </button>
+                    )}
+                    <button className="save-product-btn-modal" onClick={handleSave}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        {isNew ? 'Crear Producto' : 'Guardar Cambios'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const AdminPanel: React.FC = () => {
     const [allStoresData, setAllStoresData] = useState(getStoresData);
     const [selectedStoreId, setSelectedStoreId] = useState<string>('sachacacao');
     const [notification, setNotification] = useState('');
+    const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
 
     const formData = allStoresData[selectedStoreId];
 
     const handleFormChange = (path: (string | number)[], value: any) => {
         setAllStoresData(prevData => {
-            const newData = JSON.parse(JSON.stringify(prevData)); // Deep copy
+            const newData = JSON.parse(JSON.stringify(prevData));
             let current = newData;
             for (let i = 0; i < path.length - 1; i++) {
                 current = current[path[i]];
@@ -398,27 +476,39 @@ const AdminPanel: React.FC = () => {
         });
     };
     
-    const handleAddProduct = () => {
-        const newProduct = {
-            id: Date.now(),
-            name: 'Nuevo Producto',
-            description: 'Descripción del producto...',
-            price: 0.00,
-            image: 'https://via.placeholder.com/300x220.png?text=Imagen'
-        };
+    const handleSaveProduct = (productToSave: Partial<Product>) => {
         const currentProducts = formData?.products ?? [];
-        handleFormChange([selectedStoreId, 'products'], [...currentProducts, newProduct]);
+        if (productToSave.id) { // Es un producto existente
+            const productIndex = currentProducts.findIndex(p => p.id === productToSave.id);
+            if (productIndex > -1) {
+                handleFormChange([selectedStoreId, 'products', productIndex], productToSave);
+            }
+        } else { // Es un nuevo producto
+            const newProductWithId = { ...productToSave, id: Date.now() };
+            handleFormChange([selectedStoreId, 'products'], [...currentProducts, newProductWithId]);
+        }
+        setEditingProduct(null); // Cierra el modal al guardar
     };
 
     const handleDeleteProduct = (productId: number) => {
         const updatedProducts = (formData?.products ?? []).filter(p => p.id !== productId);
         handleFormChange([selectedStoreId, 'products'], updatedProducts);
+        setEditingProduct(null); // Cierra el modal si estaba abierto
     };
 
     const handleSave = () => {
         saveStoresData(allStoresData);
         setNotification(`Cambios para "${formData.name}" guardados correctamente.`);
         setTimeout(() => setNotification(''), 3000);
+    };
+    
+    const openNewProductModal = () => {
+      setEditingProduct({
+        name: 'Nuevo Producto',
+        description: 'Descripción increíble...',
+        price: 0,
+        image: 'https://via.placeholder.com/300x220.png?text=Imagen'
+      });
     };
 
     if (!formData) {
@@ -527,30 +617,26 @@ const AdminPanel: React.FC = () => {
                         ))}
                         </div>
                     </div>
-
-                    <div className="form-section">
+                    
+                    <div className="form-section product-management-section">
                         <div className="section-header">
                             <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Gestión de Productos</h2>
-                            <button className="add-product-btn" onClick={handleAddProduct}>+ Añadir Producto</button>
                         </div>
-                        <div className="product-list">
-                            {(formData?.products ?? []).map((product, index) => (
-                                <div key={product.id} className="product-editor">
-                                    <img src={product.image} alt={product.name} />
-                                    <div className="product-fields">
-                                        <input type="text" value={product.name} onChange={(e) => handleFormChange([selectedStoreId, 'products', index, 'name'], e.target.value)} placeholder="Nombre del Producto"/>
-                                        <textarea value={product.description} onChange={(e) => handleFormChange([selectedStoreId, 'products', index, 'description'], e.target.value)} placeholder="Descripción"></textarea>
-                                        <div className="product-meta-fields">
-                                            <input type="number" value={product.price} onChange={(e) => handleFormChange([selectedStoreId, 'products', index, 'price'], parseFloat(e.target.value) || 0)} placeholder="Precio" />
-                                            <input type="text" value={product.image} onChange={(e) => handleFormChange([selectedStoreId, 'products', index, 'image'], e.target.value)} placeholder="URL de imagen"/>
-                                        </div>
+                         <div className="product-list-mobile">
+                            {(formData?.products ?? []).map((product) => (
+                                <button key={product.id} className="product-list-item" onClick={() => setEditingProduct(product)}>
+                                    <img src={product.image} alt={product.name} className="product-list-item-img" />
+                                    <div className="product-list-item-info">
+                                        <h4>{product.name}</h4>
+                                        <p>S/ {Number(product.price).toFixed(2)}</p>
                                     </div>
-                                    <button className="delete-product-btn" onClick={() => handleDeleteProduct(product.id)} aria-label="Eliminar producto">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                    </button>
-                                </div>
+                                    <svg className="product-list-item-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </button>
                             ))}
                         </div>
+                        <button className="add-product-fab" onClick={openNewProductModal} aria-label="Añadir nuevo producto">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </button>
                     </div>
 
                      <div className="form-section">
@@ -562,6 +648,14 @@ const AdminPanel: React.FC = () => {
                     </div>
                 </main>
             </div>
+            {editingProduct && (
+                <ProductEditModal 
+                    product={editingProduct}
+                    onSave={handleSaveProduct}
+                    onDelete={handleDeleteProduct}
+                    onClose={() => setEditingProduct(null)}
+                />
+            )}
         </div>
     );
 };

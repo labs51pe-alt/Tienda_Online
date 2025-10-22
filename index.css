@@ -930,6 +930,7 @@ body:has(.admin-panel-wrapper) {
 
 .admin-main {
     padding: 2rem;
+    flex-grow: 1;
 }
 
 .form-section {
@@ -940,6 +941,12 @@ body:has(.admin-panel-wrapper) {
     border: 1px solid #e5e7eb; /* gray-200 */
     box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05);
 }
+
+.product-management-section {
+    position: relative;
+    padding-bottom: 80px; /* Space for FAB */
+}
+
 .form-section h2 {
     display: flex;
     align-items: center;
@@ -1044,79 +1051,159 @@ body:has(.admin-panel-wrapper) {
 }
 
 
-.product-list {
+/* --- Mobile-First Product Management --- */
+.product-list-mobile {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.5rem;
 }
-.product-editor {
+.product-list-item {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 1rem;
-    padding: 1rem;
+    padding: 0.75rem;
+    background-color: #f9fafb;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    background-color: #f9fafb;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
 }
-
-.product-editor img {
-    width: 80px;
-    height: 80px;
+.product-list-item:hover {
+    background-color: #f3f4f6;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+}
+.product-list-item-img {
+    width: 56px;
+    height: 56px;
     object-fit: cover;
     border-radius: 6px;
     flex-shrink: 0;
-    background-color: #f3f4f6;
 }
-.product-fields {
+.product-list-item-info {
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
 }
-.product-meta-fields {
-    display: flex;
-    gap: 0.75rem;
+.product-list-item-info h4 {
+    margin: 0;
+    font-weight: 600;
+    color: #1f2937;
 }
-.product-meta-fields input[type="number"] {
-    max-width: 120px;
+.product-list-item-info p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+.product-list-item-chevron {
+    color: #9ca3af;
+    flex-shrink: 0;
 }
 
-.add-product-btn {
-    padding: 0.6rem 1rem;
+.add-product-fab {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
     background-color: #3b82f6;
     color: white;
     border: none;
-    border-radius: 6px;
-    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
     cursor: pointer;
-    transition: background-color 0.2s;
-    display: inline-flex;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    transition: transform 0.2s, background-color 0.2s;
 }
-.add-product-btn:hover {
+.add-product-fab:hover {
+    transform: scale(1.1);
     background-color: #2563eb;
 }
 
-.delete-product-btn {
-    background: none;
-    border: 1px solid #e5e7eb;
-    color: #6b7280;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    cursor: pointer;
-    flex-shrink: 0;
+/* --- Product Edit Modal --- */
+.product-edit-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+.product-edit-modal-content {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+.product-edit-modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.product-edit-modal-header h3 { margin: 0; font-size: 1.25rem; }
+.close-modal-btn {
+    background: none; border: none; font-size: 1.75rem; color: #9ca3af; cursor: pointer;
+}
+.product-edit-modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+.image-preview-container {
+    margin-top: 1rem;
+}
+.image-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+.product-edit-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.delete-product-btn-modal, .save-product-btn-modal {
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
     transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
 }
-.delete-product-btn:hover {
-    background-color: #fef2f2;
-    border-color: #fca5a5;
+.delete-product-btn-modal {
+    background-color: #fee2e2;
     color: #ef4444;
+    border-color: #fca5a5;
+    margin-right: auto;
 }
+.delete-product-btn-modal:hover { background-color: #fecaca; }
+.save-product-btn-modal {
+    background-color: #3b82f6;
+    color: white;
+}
+.save-product-btn-modal:hover { background-color: #2563eb; }
+
+/* -------------------------------- */
 
 .save-button {
     padding: 0.75rem 1.25rem;
@@ -1199,5 +1286,13 @@ body:has(.admin-panel-wrapper) {
     }
     .form-section {
         padding: 1.5rem;
+    }
+    .product-edit-modal-content {
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+    .product-edit-modal-body {
+        padding: 1rem;
     }
 }
