@@ -316,7 +316,8 @@ const App = () => {
     // Dynamic theme application
     useEffect(() => {
         Object.entries(storeConfig.theme).forEach(([key, value]) => {
-            document.documentElement.style.setProperty(key, value);
+            // FIX: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+            document.documentElement.style.setProperty(key, value as string);
         });
         document.title = `${storeConfig.name} | Tienda Online`;
     }, []);
