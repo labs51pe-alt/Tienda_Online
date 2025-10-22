@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import { GoogleGenAI, Chat } from "@google/genai";
@@ -227,7 +225,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ isChatOpen, toggleChat }) => {
                                     className={`chat-message ${msg.type}`}
                                     // FIX: The result of marked.parse() is cast to a string to resolve a TypeScript type error.
                                     // Also, user messages are now rendered as text content to prevent XSS vulnerabilities.
-                                    dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) as string }}
+                                    // FIX: Cast the argument of marked.parse to a string to resolve the TypeScript error.
+                                    dangerouslySetInnerHTML={{ __html: marked.parse(String(msg.text)) as string }}
                                 />
                             ) : (
                                 <div key={index} className={`chat-message ${msg.type}`}>
@@ -255,7 +254,7 @@ const Header: React.FC<{ onCartClick: () => void; cartCount: number }> = ({ onCa
       <div className="container">
         <StoreLogo name={storeConfig.name} />
         <div className="header-actions">
-          <a href="/admin.html" className="admin-panel-button" aria-label="Ir al panel de administración">
+          <a href="/admin" className="admin-panel-button" aria-label="Ir al panel de administración">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
             <span>Admin</span>
           </a>
@@ -543,7 +542,7 @@ const AdminPanel: React.FC = () => {
 };
 
 const Main = () => {
-    if (window.location.pathname.endsWith('/admin.html')) {
+    if (window.location.pathname.startsWith('/admin')) {
         document.title = 'Panel de Administración';
         return <AdminPanel />;
     }
