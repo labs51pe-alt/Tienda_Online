@@ -223,10 +223,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ isChatOpen, toggleChat }) => {
                                 <div
                                     key={index}
                                     className={`chat-message ${msg.type}`}
-                                    // FIX: The result of marked.parse() is cast to a string to resolve a TypeScript type error.
-                                    // Also, user messages are now rendered as text content to prevent XSS vulnerabilities.
-                                    // FIX: Cast the argument of marked.parse to a string to resolve the TypeScript error.
-                                    dangerouslySetInnerHTML={{ __html: marked.parse(String(msg.text)) as string }}
+                                    dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) as string }}
                                 />
                             ) : (
                                 <div key={index} className={`chat-message ${msg.type}`}>
