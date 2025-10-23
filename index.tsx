@@ -14,8 +14,8 @@ const getStoreConfig = () => {
     // Si hay un ID en la ruta y existe en los datos, úsalo. Si no, usa el predeterminado.
     const storeId = storeIdFromPath && storesData[storeIdFromPath] ? storeIdFromPath : 'sachacacao';
     
-    // Maneja el caso en que la ruta sea /admin para no romper la carga de la tienda por defecto
-    if (storeId === 'admin') {
+    // Maneja el caso en que la ruta sea /admin o esté vacía para la tienda por defecto
+    if (storeId === 'admin' || storeId === '') {
         return storesData['sachacacao'];
     }
 
@@ -564,11 +564,25 @@ const AdminPanel: React.FC = () => {
 
             <div className="admin-main-content">
                 <header className="admin-header">
-                    <h1>Editando: <span className="highlight">{formData.name}</span></h1>
-                    <button className="save-button" onClick={handleSave}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        Guardar Cambios
-                    </button>
+                    <div className="admin-header-info">
+                        <h1>Editando: <span className="highlight">{formData.name}</span></h1>
+                        <div className="admin-store-url">
+                            <span>URL Pública: </span>
+                            <a href={`/${selectedStoreId}`} target="_blank" rel="noopener noreferrer">
+                                {`${window.location.origin}/${selectedStoreId}`}
+                            </a>
+                        </div>
+                    </div>
+                    <div className="admin-header-actions">
+                         <a href={`/${selectedStoreId}`} target="_blank" rel="noopener noreferrer" className="visit-store-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            Visitar Tienda
+                        </a>
+                        <button className="save-button" onClick={handleSave}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            Guardar Cambios
+                        </button>
+                    </div>
                 </header>
 
                 <main className="admin-main">
