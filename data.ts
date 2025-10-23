@@ -1,6 +1,6 @@
 // Fix: Added full implementation for the data layer, which was previously missing.
 
-interface Product {
+export interface Product {
   id: number;
   name: string;
   description: string;
@@ -8,8 +8,9 @@ interface Product {
   image: string;
 }
 
-interface StoreData {
+export interface StoreData {
   name: string;
+  templateId: 'classic' | 'modern';
   sectionTitle: string;
   heroBanner: {
     imageUrl: string;
@@ -35,6 +36,7 @@ export interface AllStoresData {
 const defaultStoresData: AllStoresData = {
   sachacacao: {
     name: 'Sacha Cacao',
+    templateId: 'classic',
     sectionTitle: 'Nuestros Chocolates Artesanales',
     heroBanner: {
       imageUrl: 'https://images.unsplash.com/photo-1578781429972-6f29a27b7b3b?q=80&w=2070&auto=format&fit=crop',
@@ -61,11 +63,34 @@ const defaultStoresData: AllStoresData = {
     },
     chatInstruction: 'Eres "CacaoBot", un asistente virtual amigable y experto en los chocolates de Sacha Cacao. Tu misión es ayudar a los clientes con sus preguntas sobre los productos, precios, ingredientes y el proceso artesanal. Eres entusiasta, conocedor y siempre usas un lenguaje cálido. La tienda se llama Sacha Cacao.'
   },
+  cafedelvalle: {
+      name: 'Café del Valle',
+      templateId: 'modern',
+      sectionTitle: 'Café de Especialidad',
+      heroBanner: {
+          imageUrl: 'https://images.unsplash.com/photo-1559496417-e7f25cb247f3?q=80&w=1974&auto=format&fit=crop',
+          title: 'El Aroma que Despierta tus Sentidos',
+          subtitle: 'Granos seleccionados y tostados a la perfección.'
+      },
+      products: [
+          { id: 1, name: 'Café Geisha Tostado Medio', description: 'Notas florales y cítricas, una experiencia única.', price: 55.00, image: 'https://images.unsplash.com/photo-1511920183353-3c7c4217a2b5?q=80&w=1974&auto=format&fit=crop'},
+          { id: 2, name: 'Café Orgánico de la Selva', description: 'Cuerpo completo con notas a chocolate y nueces.', price: 35.00, image: 'https://images.unsplash.com/photo-1599160533833-8a3c89220054?q=80&w=1974&auto=format&fit=crop'}
+      ],
+      paymentInfo: { phone: '912 345 678', name: 'Carlos Gomez', whatsapp: '51912345678' },
+      theme: {
+        primary: '#1a4a3c',
+        secondary: '#e4d8c7',
+        background: '#f8f5f0',
+        text: '#2c1e15',
+        cardBackground: '#FFFFFF',
+        buttonText: '#FFFFFF'
+      },
+      chatInstruction: 'Eres "CaféBot", un barista virtual experto en café de especialidad de Café del Valle. Tu tono es sofisticado pero accesible. Asesora a los clientes sobre perfiles de sabor, métodos de preparación y orígenes del café.'
+  }
 };
 
-const STORES_DATA_KEY = 'tienditas_stores_data';
+const STORES_DATA_KEY = 'tienditas_stores_data_v2';
 
-// Fix: Exported getStoresData and saveStoresData to make this file a module, fixing the import error in admin.tsx.
 export const getStoresData = (): AllStoresData => {
   try {
     const data = localStorage.getItem(STORES_DATA_KEY);
@@ -75,7 +100,6 @@ export const getStoresData = (): AllStoresData => {
   } catch (error) {
     console.error("Error al leer los datos de localStorage:", error);
   }
-  // If no data in localStorage, initialize with default data
   saveStoresData(defaultStoresData);
   return JSON.parse(JSON.stringify(defaultStoresData));
 };
