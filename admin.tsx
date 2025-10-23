@@ -7,13 +7,15 @@ interface Product {
   id: number; name: string; description: string; price: number; image: string;
 }
 
-// --- COMPONENTES DEL PANEL DE ADMINISTRACIÓN ---
+// ========================================================================
+// ===                 COMPONENTES DEL PANEL DE ADMIN                   ===
+// ========================================================================
 
-interface ProductEditModalProps {
-    product: Partial<Product> | null;
-    onSave: (product: Partial<Product>) => void;
-    onDelete: (productId: number) => void;
-    onClose: () => void;
+interface ProductEditModalProps { 
+    product: Partial<Product> | null; 
+    onSave: (product: Partial<Product>) => void; 
+    onDelete: (productId: number) => void; 
+    onClose: () => void; 
 }
 
 const ProductEditModal: React.FC<ProductEditModalProps> = ({ product: initialProduct, onSave, onDelete, onClose }) => {
@@ -29,7 +31,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({ product: initialPro
     };
 
     const handleSave = () => {
-        onSave(product);
+        if(product) onSave(product);
     };
 
     const handleDelete = () => {
@@ -48,21 +50,21 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({ product: initialPro
                 <div className="product-edit-modal-body">
                     <div className="form-group">
                         <label>Nombre del Producto</label>
-                        <input type="text" value={product.name} onChange={(e) => handleChange('name', e.target.value)} />
+                        <input type="text" value={product.name || ''} onChange={(e) => handleChange('name', e.target.value)} />
                     </div>
                     <div className="form-group">
                         <label>Descripción</label>
-                        <textarea value={product.description} onChange={(e) => handleChange('description', e.target.value)} rows={4}></textarea>
+                        <textarea value={product.description || ''} onChange={(e) => handleChange('description', e.target.value)} rows={4}></textarea>
                     </div>
                      <div className="form-grid">
                         <div className="form-group">
                             <label>Precio (S/)</label>
-                            <input type="number" value={product.price} onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)} />
+                            <input type="number" value={product.price || 0} onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)} />
                         </div>
                     </div>
                      <div className="form-group">
                         <label>URL de la Imagen</label>
-                        <input type="text" value={product.image} onChange={(e) => handleChange('image', e.target.value)} />
+                        <input type="text" value={product.image || ''} onChange={(e) => handleChange('image', e.target.value)} />
                     </div>
                     {product.image && (
                       <div className="image-preview-container">
@@ -92,6 +94,10 @@ const AdminPanel: React.FC = () => {
     const [selectedStoreId, setSelectedStoreId] = useState<string>('sachacacao');
     const [notification, setNotification] = useState('');
     const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+
+    useEffect(() => {
+        document.title = 'Panel de Administración';
+    }, []);
 
     const formData = allStoresData[selectedStoreId];
 
@@ -174,11 +180,25 @@ const AdminPanel: React.FC = () => {
 
             <div className="admin-main-content">
                 <header className="admin-header">
-                    <h1>Editando: <span className="highlight">{formData.name}</span></h1>
-                    <button className="save-button" onClick={handleSave}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        Guardar Cambios
-                    </button>
+                    <div className="admin-header-info">
+                        <h1>Editando: <span className="highlight">{formData.name}</span></h1>
+                        <div className="admin-store-url">
+                            <span>URL Pública: </span>
+                            <a href={`/${selectedStoreId}`} target="_blank" rel="noopener noreferrer">
+                                {`${window.location.origin}/${selectedStoreId}`}
+                            </a>
+                        </div>
+                    </div>
+                    <div className="admin-header-actions">
+                         <a href={`/${selectedStoreId}`} target="_blank" rel="noopener noreferrer" className="visit-store-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            Visitar Tienda
+                        </a>
+                        <button className="save-button" onClick={handleSave}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            Guardar Cambios
+                        </button>
+                    </div>
                 </header>
 
                 <main className="admin-main">

@@ -6,7 +6,7 @@ body {
 }
 
 /* ==========================================================================
-   ====== ADMIN PANEL STYLES - COMPLETELY REDESIGNED FOR AWESOMENESS ======
+   ====== ADMIN PANEL STYLES - NOW UNIFIED IN THIS FILE ======
    ========================================================================== */
 body:has(.admin-panel-wrapper) {
     background-color: #f9fafb; /* gray-50 */
@@ -103,14 +103,42 @@ body:has(.admin-panel-wrapper) {
     top: 0;
     z-index: 10;
 }
-.admin-header h1 {
-    margin: 0;
+.admin-header-info {
+    flex-grow: 1;
+}
+
+.admin-header-info h1 {
+    margin: 0 0 0.25rem 0;
     font-size: 1.5rem;
     font-weight: 700;
     color: #111827; /* gray-900 */
 }
-.admin-header h1 .highlight {
+.admin-header-info h1 .highlight {
     color: #3b82f6; /* blue-500 */
+}
+.admin-store-url {
+    font-size: 0.875rem;
+    color: #6b7280; /* gray-500 */
+}
+.admin-store-url span {
+    margin-right: 0.5rem;
+}
+.admin-store-url a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-family: monospace;
+    border-bottom: 1px dotted #3b82f6;
+    transition: color 0.2s;
+}
+.admin-store-url a:hover {
+    color: #1d4ed8;
+}
+
+.admin-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
 }
 
 .admin-main {
@@ -389,6 +417,29 @@ body:has(.admin-panel-wrapper) {
 .save-product-btn-modal:hover { background-color: #2563eb; }
 
 /* -------------------------------- */
+.visit-store-button {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151; /* gray-700 */
+    background-color: #fff;
+    border: 1px solid #d1d5db; /* gray-300 */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+.visit-store-button:hover {
+    background-color: #f9fafb; /* gray-50 */
+    border-color: #9ca3af; /* gray-400 */
+    color: #111827; /* gray-900 */
+}
+.visit-store-button svg {
+    color: #6b7280; /* gray-500 */
+}
 
 .save-button {
     padding: 0.75rem 1.25rem;
@@ -458,11 +509,18 @@ body:has(.admin-panel-wrapper) {
     }
     .admin-header {
         padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
     }
-    .admin-header h1 {
+    .admin-header-info h1 {
         font-size: 1.2rem;
     }
-    .save-button {
+    .admin-header-actions {
+       width: 100%;
+       justify-content: flex-end;
+    }
+    .save-button, .visit-store-button {
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
     }
