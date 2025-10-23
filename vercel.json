@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/admin{,/}*|/admin.html",
+      "destination": "/admin.html"
+    },
+    {
       "source": "/((?!api/|_next/|static/|public/|favicon.ico|.*\\..*).*)",
       "destination": "/index.html"
     }
