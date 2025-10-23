@@ -294,6 +294,69 @@ const ModernTemplate: React.FC<{ storeData: StoreData }> = ({ storeData }) => {
     );
 };
 
+// --- PLANTILLA 3: ELEGANTE ---
+const ElegantTemplate: React.FC<{ storeData: StoreData }> = ({ storeData }) => {
+    const [cartItems, setCartItems] = useState<(Product & { quantity: number })[]>([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+
+    const handleAddToCart = (product: Product) => {
+        setCartItems(prevItems => {
+            const itemInCart = prevItems.find(item => item.id === product.id);
+            if (itemInCart) {
+                return prevItems.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+            }
+            return [...prevItems, { ...product, quantity: 1 }];
+        });
+    };
+
+    const totalItemsInCart = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+    return (
+        <div className="store-container template-elegant">
+            <header className="store-header">
+                <div className="store-name">{storeData.name}</div>
+                <nav className="store-nav">
+                    <a href="#products">Productos</a>
+                    <a href="#about">Nosotros</a>
+                </nav>
+                <button className="cart-button" onClick={() => setIsCartOpen(true)}>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    {totalItemsInCart > 0 && <span className="cart-badge">{totalItemsInCart}</span>}
+                </button>
+            </header>
+            <main>
+                <section className="hero-elegant" style={{ backgroundImage: `url(${storeData.heroBanner.imageUrl})` }}>
+                     <div className="hero-overlay"></div>
+                     <div className="hero-content">
+                        <h1>{storeData.heroBanner.title}</h1>
+                        <p>{storeData.heroBanner.subtitle}</p>
+                    </div>
+                </section>
+                <section id="products" className="products-section">
+                    <h2>{storeData.sectionTitle}</h2>
+                    <div className="products-grid">
+                        {storeData.products.map(product => (
+                           <div className="product-card" key={product.id}>
+                               <img src={product.image} alt={product.name} className="product-image" />
+                               <div className="product-info">
+                                   <h3>{product.name}</h3>
+                                   <p className="product-description">{product.description}</p>
+                                   <div className="product-footer">
+                                       <span className="product-price">S/ {product.price.toFixed(2)}</span>
+                                       <button className="add-to-cart-btn" onClick={() => handleAddToCart(product)}>Añadir</button>
+                                   </div>
+                               </div>
+                           </div>
+                        ))}
+                    </div>
+                </section>
+            </main>
+             <ChatWidget instruction={storeData.chatInstruction} themeColor={storeData.theme.primary} />
+            {isCartOpen && <Cart cartItems={cartItems} onClose={() => setIsCartOpen(false)} paymentInfo={storeData.paymentInfo} storeName={storeData.name}/>}
+        </div>
+    );
+};
+
 
 const NotFoundPage = () => (
     <div style={{ textAlign: 'center', padding: '5rem 1rem', fontFamily: 'sans-serif' }}>
@@ -341,6 +404,8 @@ const App = () => {
     switch (storeData.templateId) {
         case 'modern':
             return <ModernTemplate storeData={storeData} />;
+        case 'elegant':
+            return <ElegantTemplate storeData={storeData} />;
         case 'classic':
         default:
             return <ClassicTemplate storeData={storeData} />;
@@ -389,7 +454,7 @@ const CreateStoreModal: React.FC<{ onClose: () => void; onSave: (storeId: string
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [palette, setPalette] = useState({ primary: '#5D4037', secondary: '#D7CCC8', background: '#F5F5F5', text: '#4E342E', cardBackground: '#FFFFFF', buttonText: '#FFFFFF' });
-    const [selectedTemplate, setSelectedTemplate] = useState<'classic' | 'modern'>('classic');
+    const [selectedTemplate, setSelectedTemplate] = useState<'classic' | 'modern' | 'elegant'>('classic');
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const name = e.target.value;
@@ -474,12 +539,16 @@ const CreateStoreModal: React.FC<{ onClose: () => void; onSave: (storeId: string
                             <div className="form-group"><label>Elige una Plantilla</label>
                                 <div className="template-selector">
                                     <div className={`template-card ${selectedTemplate === 'classic' ? 'selected' : ''}`} onClick={() => setSelectedTemplate('classic')}>
-                                        <img src="https://i.imgur.com/8kUa8s2.png" alt="Plantilla Clásica" />
+                                        <img src="https://i.imgur.com/s19V29v.png" alt="Plantilla Clásica" />
                                         <span>Clásico</span>
                                     </div>
                                     <div className={`template-card ${selectedTemplate === 'modern' ? 'selected' : ''}`} onClick={() => setSelectedTemplate('modern')}>
-                                        <img src="https://i.imgur.com/dJkN2eC.png" alt="Plantilla Moderna" />
+                                        <img src="https://i.imgur.com/15s2Y23.png" alt="Plantilla Moderna" />
                                         <span>Moderno</span>
+                                    </div>
+                                     <div className={`template-card ${selectedTemplate === 'elegant' ? 'selected' : ''}`} onClick={() => setSelectedTemplate('elegant')}>
+                                        <img src="https://i.imgur.com/kSj4d1n.png" alt="Plantilla Elegante" />
+                                        <span>Elegante</span>
                                     </div>
                                 </div>
                             </div>

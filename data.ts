@@ -10,7 +10,7 @@ export interface Product {
 
 export interface StoreData {
   name: string;
-  templateId: 'classic' | 'modern';
+  templateId: 'classic' | 'modern' | 'elegant';
   sectionTitle: string;
   heroBanner: {
     imageUrl: string;

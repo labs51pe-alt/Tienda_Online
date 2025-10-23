@@ -71,6 +71,35 @@ body {
 .template-modern .product-price { font-size: 1.1rem; font-weight: 500; }
 
 /* ==========================================================================
+   ====== ESTILOS DE LA PLANTILLA "ELEGANTE" ======
+   ========================================================================== */
+.template-elegant { background-color: var(--theme-background); font-family: 'Inter', sans-serif; }
+.template-elegant .store-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2.5rem; background-color: var(--theme-background); border-bottom: 1px solid var(--theme-secondary); position: sticky; top: 0; z-index: 1000; }
+.template-elegant .store-name { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--theme-text); }
+.template-elegant .store-nav { display: flex; gap: 2rem; }
+.template-elegant .store-nav a { text-decoration: none; color: var(--theme-text); font-weight: 500; position: relative; }
+.template-elegant .store-nav a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background-color: var(--theme-primary); transition: width 0.3s; }
+.template-elegant .store-nav a:hover::after { width: 100%; }
+.template-elegant .cart-button { position: relative; background: none; border: none; cursor: pointer; color: var(--theme-text); }
+.template-elegant .cart-badge { position: absolute; top: -5px; right: -10px; background-color: var(--theme-primary); color: var(--theme-buttonText); border-radius: 50%; padding: 2px 6px; font-size: 0.75rem; font-weight: bold; }
+.template-elegant .hero-elegant { position: relative; height: 70vh; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--theme-buttonText); }
+.template-elegant .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); }
+.template-elegant .hero-content { position: relative; z-index: 1; }
+.template-elegant .hero-content h1 { font-family: 'Playfair Display', serif; font-size: 4rem; margin: 0; }
+.template-elegant .hero-content p { font-size: 1.2rem; }
+.template-elegant .products-section { padding: 4rem 2.5rem; max-width: 1400px; margin: 0 auto; text-align: center; }
+.template-elegant .products-section h2 { font-family: 'Playfair Display', serif; font-size: 2.8rem; color: var(--theme-text); margin-bottom: 3rem; }
+.template-elegant .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 3rem; }
+.template-elegant .product-card { background-color: var(--theme-cardBackground); border: 1px solid var(--theme-secondary); text-align: center; padding: 1.5rem; transition: transform 0.3s, box-shadow 0.3s; }
+.template-elegant .product-card:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+.template-elegant .product-image { width: 100%; height: 250px; object-fit: cover; margin-bottom: 1.5rem; }
+.template-elegant .product-info h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0 0 0.5rem; }
+.template-elegant .product-description { font-size: 0.9rem; color: #666; margin-bottom: 1.5rem; }
+.template-elegant .product-footer { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.template-elegant .product-price { font-size: 1.3rem; font-weight: 500; }
+.template-elegant .add-to-cart-btn { background-color: var(--theme-primary); color: var(--theme-buttonText); border: none; padding: 0.8rem 2rem; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: background-color 0.2s; }
+
+/* ==========================================================================
    ====== COMPONENTES COMPARTIDOS (CARRITO, CHAT) ======
    ========================================================================== */
 .cart-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
@@ -161,9 +190,9 @@ body:has(.admin-panel-wrapper) { background-color: #f9fafb; }
 .create-store-modal-header { padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; }
 .create-store-modal-body { padding: 1.5rem; }
 .store-id-preview { font-size: 0.9rem; color: #6b7280; background: #f3f4f6; padding: 0.5rem; border-radius: 4px; }
-.template-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; }
+.template-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 0.5rem; }
 .template-card { border: 2px solid #e5e7eb; border-radius: 8px; padding: 0.5rem; cursor: pointer; text-align: center; transition: all 0.2s; }
-.template-card img { width: 100%; border-radius: 6px; }
+.template-card img { width: 100%; border-radius: 6px; aspect-ratio: 4/3; object-fit: cover; border: 1px solid #eee; }
 .template-card span { font-weight: 600; margin-top: 0.5rem; display: block; }
 .template-card.selected { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
 .logo-uploader input { width: 100%; padding: 0.5rem; }
