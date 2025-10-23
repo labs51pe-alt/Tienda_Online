@@ -14,6 +14,11 @@ const getStoreConfig = () => {
     // Si hay un ID en la ruta y existe en los datos, úsalo. Si no, usa el predeterminado.
     const storeId = storeIdFromPath && storesData[storeIdFromPath] ? storeIdFromPath : 'sachacacao';
     
+    // Maneja el caso en que la ruta sea /admin para no romper la carga de la tienda por defecto
+    if (storeId === 'admin') {
+        return storesData['sachacacao'];
+    }
+
     return storesData[storeId];
 };
 
@@ -190,7 +195,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ isChatOpen, toggleChat }) => {
               },
             });
         }
-    }, [isChatOpen]);
+    }, [isChatOpen, storeConfig.chatInstruction]);
     
     useEffect(() => {
         if (chatBodyRef.current) chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
@@ -410,7 +415,7 @@ const ProductEditModal: React.FC<ProductEditModalProps> = ({ product: initialPro
     };
 
     const handleSave = () => {
-        onSave(product);
+        if(product) onSave(product);
     };
 
     const handleDelete = () => {
@@ -683,17 +688,12 @@ const AdminPanel: React.FC = () => {
 
 const Main = () => {
     // Si la ruta comienza con /admin, renderiza el panel de admin.
-    // NOTA: Esto requiere una configuración de reescritura en Vercel.
     if (window.location.pathname.startsWith('/admin')) {
         return <AdminPanel />;
     }
     // Para cualquier otra ruta, renderiza la tienda.
     return <App />;
 };
-
-// Limpia los archivos que ya no se usan.
-// No se necesita `admin.tsx` o `admin.css` separados.
-// No se necesita `admin.html`.
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(<Main />);

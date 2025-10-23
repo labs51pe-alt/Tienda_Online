@@ -822,7 +822,7 @@ body {
 
 
 /* ==========================================================================
-   ====== ADMIN PANEL STYLES - COMPLETELY REDESIGNED FOR AWESOMENESS ======
+   ====== ADMIN PANEL STYLES - NOW UNIFIED IN THIS FILE ======
    ========================================================================== */
 body:has(.admin-panel-wrapper) {
     background-color: #f9fafb; /* gray-50 */
