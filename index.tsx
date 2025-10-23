@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
-import { getStoresData } from './data.ts';
-// Fix: Import GoogleGenAI and Chat from @google/genai
+import { getStoresData, saveStoresData, AllStoresData } from './data.ts';
 import { GoogleGenAI, Chat } from '@google/genai';
 
-// --- INTERFACES DE TIPOS ---
+// --- INTERFACES DE TIPOS (UNIFIED) ---
 interface Product {
     id: number;
     name: string;
@@ -33,7 +33,9 @@ interface StoreData {
     chatInstruction: string;
 }
 
-// --- COMPONENTES DE LA TIENDA ---
+// ========================================================================
+// ===                   COMPONENTES DE LA TIENDA                       ===
+// ========================================================================
 
 const HeroBanner: React.FC<{ banner: StoreData['heroBanner'] }> = ({ banner }) => (
     <div className="hero-banner" style={{ backgroundImage: `url(${banner.imageUrl})` }}>
@@ -120,7 +122,6 @@ const Cart: React.FC<{
     );
 };
 
-
 const ChatWidget: React.FC<{ instruction: string; themeColor: string }> = ({ instruction, themeColor }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<{ author: 'user' | 'model'; content: string }[]>([]);
@@ -132,14 +133,10 @@ const ChatWidget: React.FC<{ instruction: string; themeColor: string }> = ({ ins
     useEffect(() => {
         if (isOpen && !chat) {
             try {
-                // Fix: Initialize GoogleGenAI with API Key from environment variable.
                 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
-                // Fix: Use create chat method with the recommended model 'gemini-2.5-flash'.
                 const newChat = ai.chats.create({
                     model: 'gemini-2.5-flash',
-                    config: {
-                        systemInstruction: instruction,
-                    },
+                    config: { systemInstruction: instruction },
                 });
                 setChat(newChat);
             } catch (error) {
@@ -163,14 +160,11 @@ const ChatWidget: React.FC<{ instruction: string; themeColor: string }> = ({ ins
         setIsLoading(true);
 
         try {
-            // Fix: Correctly handle streaming response from sendMessageStream.
             const result = await chat.sendMessageStream({ message: input });
             let modelResponse = '';
             setMessages(prev => [...prev, { author: 'model', content: '' }]);
             for await (const chunk of result) {
-                // FIX: Defensively cast the chunk text to a string to prevent potential 'unknown' type errors.
                 modelResponse += String(chunk.text ?? "");
-                // Update the last message (the model's response) in a streaming fashion
                 setMessages(prev => {
                     const newMessages = [...prev];
                     newMessages[newMessages.length - 1].content = modelResponse;
@@ -224,7 +218,6 @@ const ChatWidget: React.FC<{ instruction: string; themeColor: string }> = ({ ins
     );
 };
 
-
 const StorePage: React.FC<{ storeData: StoreData }> = ({ storeData }) => {
     const [cartItems, setCartItems] = useState<(Product & { quantity: number })[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -232,7 +225,7 @@ const StorePage: React.FC<{ storeData: StoreData }> = ({ storeData }) => {
     useEffect(() => {
         const root = document.documentElement;
         Object.entries(storeData.theme).forEach(([key, value]) => {
-            root.style.setProperty(`--theme-${key}`, value);
+            root.style.setProperty(`--theme-${key}`, value as string);
         });
         document.title = storeData.name;
     }, [storeData]);
@@ -271,183 +264,8 @@ const StorePage: React.FC<{ storeData: StoreData }> = ({ storeData }) => {
                     </div>
                 </section>
             </main>
-            
             <ChatWidget instruction={storeData.chatInstruction} themeColor={storeData.theme.primary} />
-            
             {isCartOpen && <Cart cartItems={cartItems} onClose={() => setIsCartOpen(false)} paymentInfo={storeData.paymentInfo} storeName={storeData.name}/>}
-            
-            <style>{`
-                :root {
-                    --theme-primary: #5D4037;
-                    --theme-secondary: #D7CCC8;
-                    --theme-background: #F5F5F5;
-                    --theme-text: #4E342E;
-                    --theme-cardBackground: #FFFFFF;
-                    --theme-buttonText: #FFFFFF;
-                }
-                body {
-                    margin: 0;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                    background-color: var(--theme-background);
-                    color: var(--theme-text);
-                    -webkit-font-smoothing: antialiased;
-                    -moz-osx-font-smoothing: grayscale;
-                }
-                * { box-sizing: border-box; }
-                
-                .store-container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    background-color: var(--theme-cardBackground);
-                }
-
-                .store-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 1rem 2rem;
-                    background-color: var(--theme-cardBackground);
-                    border-bottom: 1px solid #eee;
-                    position: sticky;
-                    top: 0;
-                    z-index: 1000;
-                }
-                .store-name { font-size: 1.5rem; font-weight: bold; color: var(--theme-primary); }
-                .cart-button {
-                    position: relative;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    color: var(--theme-text);
-                }
-                .cart-badge {
-                    position: absolute;
-                    top: -5px;
-                    right: -10px;
-                    background-color: var(--theme-primary);
-                    color: var(--theme-buttonText);
-                    border-radius: 50%;
-                    padding: 2px 6px;
-                    font-size: 0.75rem;
-                    font-weight: bold;
-                }
-
-                .hero-banner {
-                    position: relative;
-                    height: 50vh;
-                    background-size: cover;
-                    background-position: center;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center;
-                    color: white;
-                }
-                .hero-overlay {
-                    position: absolute;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background-color: rgba(0, 0, 0, 0.4);
-                }
-                .hero-content { position: relative; z-index: 1; }
-                .hero-content h1 { font-size: 3rem; margin: 0; }
-                .hero-content p { font-size: 1.25rem; }
-
-                .products-section { padding: 2rem; text-align: center; }
-                .products-section h2 { font-size: 2rem; color: var(--theme-primary); margin-bottom: 2rem; }
-                .products-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                    gap: 2rem;
-                }
-
-                .product-card {
-                    background-color: #fff;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    overflow: hidden;
-                    text-align: left;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .product-image { width: 100%; height: 220px; object-fit: cover; }
-                .product-info { padding: 1rem; flex-grow: 1; display: flex; flex-direction: column; }
-                .product-info h3 { margin: 0 0 0.5rem; }
-                .product-description { font-size: 0.9rem; color: #666; flex-grow: 1; margin-bottom: 1rem; }
-                .product-footer { display: flex; justify-content: space-between; align-items: center; }
-                .product-price { font-size: 1.2rem; font-weight: bold; color: var(--theme-primary); }
-                .add-to-cart-btn {
-                    background-color: var(--theme-primary);
-                    color: var(--theme-buttonText);
-                    border: none;
-                    padding: 0.6rem 1rem;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-weight: bold;
-                    transition: background-color 0.2s;
-                }
-                .add-to-cart-btn:hover { background-color: color-mix(in srgb, var(--theme-primary) 90%, black); }
-
-                .cart-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-                .cart-modal-content { background: white; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; }
-                .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
-                .cart-header h2 { margin: 0; }
-                .close-cart-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
-                .cart-items { max-height: 300px; overflow-y: auto; }
-                .cart-item { display: flex; justify-content: space-between; padding: 0.5rem 0; }
-                .cart-total { display: flex; justify-content: space-between; padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #eee; font-size: 1.2rem; }
-                .cart-payment-info { margin-top: 1.5rem; background: #f9f9f9; padding: 1rem; border-radius: 5px; text-align: center; }
-                .whatsapp-btn { display: inline-flex; align-items: center; gap: 0.5rem; background-color: #25D366; color: white; padding: 0.8rem 1.5rem; border-radius: 5px; text-decoration: none; font-weight: bold; margin-top: 1rem; }
-                
-                .chat-fab {
-                    position: fixed;
-                    bottom: 2rem;
-                    right: 2rem;
-                    width: 60px;
-                    height: 60px;
-                    border-radius: 50%;
-                    border: none;
-                    color: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-                    cursor: pointer;
-                    z-index: 1010;
-                }
-                .chat-window {
-                    position: fixed;
-                    bottom: 6.5rem;
-                    right: 2rem;
-                    width: 350px;
-                    height: 500px;
-                    background: white;
-                    border-radius: 10px;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-                    display: flex;
-                    flex-direction: column;
-                    z-index: 1010;
-                }
-                .chat-header { color: white; padding: 1rem; border-top-left-radius: 10px; border-top-right-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
-                .chat-header h3 { margin: 0; font-size: 1.1rem; }
-                .chat-header button { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
-                .chat-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column;}
-                .chat-welcome { text-align: center; color: #888; font-size: 0.9rem; padding: 2rem 0; }
-                .message { max-width: 80%; padding: 0.5rem 1rem; margin-bottom: 0.5rem; border-radius: 15px; word-wrap: break-word; }
-                .message.user { background: #eee; align-self: flex-end; margin-left: auto; border-bottom-right-radius: 5px; }
-                .message.model { background-color: var(--theme-secondary); align-self: flex-start; border-bottom-left-radius: 5px; }
-                .message.typing { color: #888; font-style: italic; }
-                .chat-input-form { display: flex; padding: 0.5rem; border-top: 1px solid #eee; }
-                .chat-input-form input { flex-grow: 1; border: 1px solid #ccc; border-radius: 20px; padding: 0.5rem 1rem; outline: none; }
-                .chat-input-form button { background: var(--theme-primary); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-left: 0.5rem; cursor: pointer; }
-
-                @media (max-width: 768px) {
-                    .store-header { padding: 1rem; }
-                    .hero-content h1 { font-size: 2rem; }
-                    .products-section { padding: 1rem; }
-                    .chat-window { width: calc(100vw - 2rem); right: 1rem; bottom: 5.5rem; height: 60vh; }
-                    .chat-fab { right: 1rem; bottom: 1rem; }
-                }
-            `}</style>
         </div>
     );
 };
@@ -465,17 +283,12 @@ const App = () => {
 
     useEffect(() => {
         const path = window.location.pathname;
-        if (path.startsWith('/admin')) {
-            return;
-        }
-
         const allStores = getStoresData();
-        const storeIdFromPath = path.substring(1).split('/')[0];
-        const storeId = storeIdFromPath || 'sachacacao';
+        let storeId = path.substring(1).split('/')[0];
         
-        if (storeIdFromPath === '' || storeIdFromPath === 'index.html') {
-             window.location.pathname = '/sachacacao';
-             return;
+        if (storeId === '' || storeId === 'index.html') {
+             storeId = 'sachacacao'; 
+             window.history.replaceState({}, '', `/${storeId}`);
         }
 
         if (allStores[storeId]) {
@@ -484,10 +297,6 @@ const App = () => {
             setStoreData(null); 
         }
     }, []);
-
-    if (window.location.pathname.startsWith('/admin')) {
-        return null;
-    }
 
     if (storeData === undefined) {
         return <div style={{ textAlign: 'center', padding: '5rem 1rem' }}>Cargando tienda...</div>;
@@ -500,8 +309,326 @@ const App = () => {
     return <StorePage storeData={storeData} />;
 };
 
+
+// ========================================================================
+// ===                 COMPONENTES DEL PANEL DE ADMIN                   ===
+// ========================================================================
+
+interface ProductEditModalProps { 
+    product: Partial<Product> | null; 
+    onSave: (product: Partial<Product>) => void; 
+    onDelete: (productId: number) => void; 
+    onClose: () => void; 
+}
+
+const ProductEditModal: React.FC<ProductEditModalProps> = ({ product: initialProduct, onSave, onDelete, onClose }) => {
+    const [product, setProduct] = useState(initialProduct);
+    const isNew = !product?.id;
+
+    useEffect(() => { setProduct(initialProduct); }, [initialProduct]);
+    
+    if (!product) return null;
+
+    const handleChange = (field: keyof Product, value: string | number) => {
+        setProduct(p => p ? { ...p, [field]: value } : null);
+    };
+
+    const handleSave = () => {
+        if(product) onSave(product);
+    };
+
+    const handleDelete = () => {
+        if (product.id && window.confirm(`¿Estás seguro de que quieres eliminar "${product.name}"?`)) {
+            onDelete(product.id);
+        }
+    };
+
+    return (
+        <div className="product-edit-modal-overlay" onClick={onClose}>
+            <div className="product-edit-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="product-edit-modal-header">
+                    <h3>{isNew ? 'Añadir Nuevo Producto' : 'Editar Producto'}</h3>
+                    <button onClick={onClose} className="close-modal-btn">&times;</button>
+                </div>
+                <div className="product-edit-modal-body">
+                    <div className="form-group">
+                        <label>Nombre del Producto</label>
+                        <input type="text" value={product.name || ''} onChange={(e) => handleChange('name', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                        <label>Descripción</label>
+                        <textarea value={product.description || ''} onChange={(e) => handleChange('description', e.target.value)} rows={4}></textarea>
+                    </div>
+                     <div className="form-grid">
+                        <div className="form-group">
+                            <label>Precio (S/)</label>
+                            <input type="number" value={product.price || 0} onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)} />
+                        </div>
+                    </div>
+                     <div className="form-group">
+                        <label>URL de la Imagen</label>
+                        <input type="text" value={product.image || ''} onChange={(e) => handleChange('image', e.target.value)} />
+                    </div>
+                    {product.image && (
+                      <div className="image-preview-container">
+                          <img src={product.image} alt="Vista previa" className="image-preview"/>
+                      </div>
+                    )}
+                </div>
+                <div className="product-edit-modal-footer">
+                    {!isNew && (
+                        <button className="delete-product-btn-modal" onClick={handleDelete}>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            Eliminar
+                        </button>
+                    )}
+                    <button className="save-product-btn-modal" onClick={handleSave}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        {isNew ? 'Crear Producto' : 'Guardar Cambios'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AdminPanel: React.FC = () => {
+    const [allStoresData, setAllStoresData] = useState<AllStoresData>(() => getStoresData());
+    const [selectedStoreId, setSelectedStoreId] = useState<string>('sachacacao');
+    const [notification, setNotification] = useState('');
+    const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+
+    useEffect(() => {
+        document.title = 'Panel de Administración';
+    }, []);
+
+    const formData = allStoresData[selectedStoreId];
+
+    const handleFormChange = (path: (string | number)[], value: any) => {
+        setAllStoresData(prevData => {
+            const newData = JSON.parse(JSON.stringify(prevData));
+            let current: any = newData;
+            for (let i = 0; i < path.length - 1; i++) {
+                current = current[path[i]];
+            }
+            current[path[path.length - 1]] = value;
+            return newData;
+        });
+    };
+    
+    const handleSaveProduct = (productToSave: Partial<Product>) => {
+        const currentProducts = formData?.products ?? [];
+        if (productToSave.id) { // Es un producto existente
+            const productIndex = currentProducts.findIndex(p => p.id === productToSave.id);
+            if (productIndex > -1) {
+                handleFormChange([selectedStoreId, 'products', productIndex], productToSave);
+            }
+        } else { // Es un nuevo producto
+            const newProductWithId = { ...productToSave, id: Date.now() };
+            handleFormChange([selectedStoreId, 'products'], [...currentProducts, newProductWithId]);
+        }
+        setEditingProduct(null); // Cierra el modal al guardar
+    };
+
+    const handleDeleteProduct = (productId: number) => {
+        const updatedProducts = (formData?.products ?? []).filter(p => p.id !== productId);
+        handleFormChange([selectedStoreId, 'products'], updatedProducts);
+        setEditingProduct(null); // Cierra el modal si estaba abierto
+    };
+
+    const handleSave = () => {
+        saveStoresData(allStoresData);
+        setNotification(`Cambios para "${formData.name}" guardados correctamente.`);
+        setTimeout(() => setNotification(''), 3000);
+    };
+    
+    const openNewProductModal = () => {
+      setEditingProduct({
+        name: 'Nuevo Producto',
+        description: 'Descripción increíble...',
+        price: 0,
+        image: 'https://via.placeholder.com/300x220.png?text=Imagen'
+      });
+    };
+
+    if (!formData) {
+        return <div className="admin-loading">Cargando panel de administración...</div>;
+    }
+
+    return (
+        <div className="admin-panel-wrapper">
+            {notification && <div className="notification">{notification}</div>}
+            
+            <aside className="admin-sidebar">
+                <div className="sidebar-header">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                    <span>Panel de Tiendas</span>
+                </div>
+                <nav className="store-nav">
+                    <p className="nav-title">Tus Tiendas</p>
+                    <ul>
+                        {Object.keys(allStoresData).map(storeId => (
+                            <li key={storeId}>
+                                <button
+                                    className={`nav-button ${selectedStoreId === storeId ? 'active' : ''}`}
+                                    onClick={() => setSelectedStoreId(storeId)}
+                                >
+                                    {allStoresData[storeId].name}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            </aside>
+
+            <div className="admin-main-content">
+                <header className="admin-header">
+                    <div className="admin-header-info">
+                        <h1>Editando: <span className="highlight">{formData.name}</span></h1>
+                        <div className="admin-store-url">
+                            <span>URL Pública: </span>
+                            <a href={`/${selectedStoreId}`} target="_blank" rel="noopener noreferrer">
+                                {`${window.location.origin}/${selectedStoreId}`}
+                            </a>
+                        </div>
+                    </div>
+                    <div className="admin-header-actions">
+                         <a href={`/${selectedStoreId}`} target="_blank" rel="noopener noreferrer" className="visit-store-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            Visitar Tienda
+                        </a>
+                        <button className="save-button" onClick={handleSave}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </header>
+
+                <main className="admin-main">
+                    <div className="form-section">
+                        <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 9v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9"/><path d="M9 22V12h6v10M2 10.6L12 2l10 8.6"/></svg>Datos Generales</h2>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label>Nombre de la Tienda</label>
+                                <input type="text" value={formData?.name ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'name'], e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Título de la Sección de Productos</label>
+                                <input type="text" value={formData?.sectionTitle ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'sectionTitle'], e.target.value)} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-section">
+                        <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M20.4 14.5L16 10 4 20"/></svg>Banner Principal</h2>
+                        <div className="form-group">
+                            <label>URL de la Imagen de Fondo</label>
+                            <input type="text" value={formData?.heroBanner?.imageUrl ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'heroBanner', 'imageUrl'], e.target.value)} />
+                        </div>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label>Título del Banner</label>
+                                <input type="text" value={formData?.heroBanner?.title ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'heroBanner', 'title'], e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Subtítulo del Banner</label>
+                                <input type="text" value={formData?.heroBanner?.subtitle ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'heroBanner', 'subtitle'], e.target.value)} />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="form-section">
+                        <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>Información de Pago y Contacto</h2>
+                        <div className="form-grid">
+                            <div className="form-group">
+                                <label>Número de Yape/Plin</label>
+                                <input type="text" value={formData?.paymentInfo?.phone ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'paymentInfo', 'phone'], e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Nombre del Titular</label>
+                                <input type="text" value={formData?.paymentInfo?.name ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'paymentInfo', 'name'], e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Número de WhatsApp (con cód. país)</label>
+                                <input type="text" value={formData?.paymentInfo?.whatsapp ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'paymentInfo', 'whatsapp'], e.target.value)} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-section">
+                        <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>Paleta de Colores</h2>
+                        <div className="color-grid">
+                        {Object.entries(formData?.theme ?? {}).map(([key, value]) => (
+                            <div key={key} className="form-group color-group">
+                                <label>{key}</label>
+                                <div className="color-input-wrapper">
+                                    <div className="color-picker-container">
+                                        <input type="color" value={value as string} onChange={(e) => handleFormChange([selectedStoreId, 'theme', key], e.target.value)} />
+                                    </div>
+                                    <input type="text" className="color-hex-input" value={value as string} onChange={(e) => handleFormChange([selectedStoreId, 'theme', key], e.target.value)} />
+                                </div>
+                            </div>
+                        ))}
+                        </div>
+                    </div>
+                    
+                    <div className="form-section product-management-section">
+                        <div className="section-header">
+                            <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Gestión de Productos</h2>
+                        </div>
+                         <div className="product-list-mobile">
+                            {(formData?.products ?? []).map((product) => (
+                                <button key={product.id} className="product-list-item" onClick={() => setEditingProduct(product)}>
+                                    <img src={product.image} alt={product.name} className="product-list-item-img" />
+                                    <div className="product-list-item-info">
+                                        <h4>{product.name}</h4>
+                                        <p>S/ {Number(product.price).toFixed(2)}</p>
+                                    </div>
+                                    <svg className="product-list-item-chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </button>
+                            ))}
+                        </div>
+                        <button className="add-product-fab" onClick={openNewProductModal} aria-label="Añadir nuevo producto">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </button>
+                    </div>
+
+                     <div className="form-section">
+                        <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.65-3.8a9 9 0 1 1 3.4 2.9l-5.05.9"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1zm-2 2a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1zm4 0a.5.5 0 0 0 1 0v-1a.5.5 0 0 0-1 0v1zm2-2a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1zm-4 0a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1z"/></svg>Instrucción para el Asistente de IA</h2>
+                         <div className="form-group">
+                            <label>Personalidad y contexto del Chatbot</label>
+                            <textarea value={formData?.chatInstruction ?? ''} onChange={(e) => handleFormChange([selectedStoreId, 'chatInstruction'], e.target.value)} rows={6} placeholder="Ej: Eres un asistente amigable de [Nombre de la tienda], experto en..."></textarea>
+                        </div>
+                    </div>
+                </main>
+            </div>
+            {editingProduct && (
+                <ProductEditModal 
+                    product={editingProduct}
+                    onSave={handleSaveProduct}
+                    onDelete={handleDeleteProduct}
+                    onClose={() => setEditingProduct(null)}
+                />
+            )}
+        </div>
+    );
+};
+
+
+// ========================================================================
+// ===                 ROUTER PRINCIPAL DE LA APLICACIÓN                ===
+// ========================================================================
+
+const MainRouter = () => {
+    if (window.location.pathname.startsWith('/admin')) {
+        return <AdminPanel />;
+    }
+    return <App />;
+};
+
+
 const rootEl = document.getElementById('root');
 if (rootEl) {
     const root = ReactDOM.createRoot(rootEl);
-    root.render(<App />);
+    root.render(<MainRouter />);
 }
